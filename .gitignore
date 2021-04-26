@@ -1,4 +1,15 @@
-/data/*
+/data/DIV2K_train_HR/*
+!/data/DIV2K_train_HR/.gitkeep
+
+/data/DIV2K_train_LR_bicubic/*
+!/data/DIV2K_train_LR_bicubic/.gitkeep
+
+/data/DIV2K_valid_HR/*
+!/data/DIV2K_valid_HR/.gitkeep
+
+data/DIV2K_valid_LR_bicubic/*
+!data/DIV2K_valid_LR_bicubic/.gitkeep
+
 /results/
 /checkpoint/
 *.bak
