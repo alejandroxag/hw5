@@ -4,7 +4,7 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {}
 
-modules = []
+modules = ["autoencoder.py"]
 
 doc_url = "https://alejandroxag.github.io/super_resolution/"
 
