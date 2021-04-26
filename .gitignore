@@ -1,14 +1,11 @@
-/data/DIV2K_train_HR/*
-!/data/DIV2K_train_HR/.gitkeep
-
-/data/DIV2K_train_LR_bicubic/*
-!/data/DIV2K_train_LR_bicubic/.gitkeep
-
-/data/DIV2K_valid_HR/*
-!/data/DIV2K_valid_HR/.gitkeep
-
-data/DIV2K_valid_LR_bicubic/*
-!data/DIV2K_valid_LR_bicubic/.gitkeep
+/data/train/hr/*
+!/data/train/hr/.gitkeep
+/data/train/lr/*
+!/data/train/lr/.gitkeep
+/data/val/lr/*
+!/data/val/lr/.gitkeep
+/data/val/hr/*
+!/data/val/hr/.gitkeep
 
 /results/
 /checkpoint/
