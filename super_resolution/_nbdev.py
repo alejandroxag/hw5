@@ -2,7 +2,7 @@
 
 __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
-index = {}
+index = {"PicturesDataset": "autoencoder.ipynb"}
 
 modules = ["autoencoder.py"]
 
