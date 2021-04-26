@@ -1,4 +1,4 @@
-name: idl_ubuntu
+name: hw5
 channels:
   - pytorch
   - conda-forge
