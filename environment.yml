@@ -1,0 +1,27 @@
+name: idl_ubuntu
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.7
+  - numpy
+  - hyperopt
+  - matplotlib
+  - pandas
+  - pip
+  - pytorch
+  - torchvision
+  - torchaudio
+  - cudatoolkit=10.2
+  - requests
+  - statsmodels
+  - scikit-learn
+  - tqdm
+  - seaborn
+  - jupyterlab
+  - jupyter
+  - nb_conda
+  - pip:
+    - nbdev
+# Necessary run pip install -e . to install the package
