@@ -6,6 +6,8 @@
 !/data/val/lr/.gitkeep
 /data/val/hr/*
 !/data/val/hr/.gitkeep
+/data/datasets/*
+!/data/datasets/.gitkeep
 
 /results/
 /checkpoint/
