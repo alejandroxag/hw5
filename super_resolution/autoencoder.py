@@ -13,9 +13,11 @@ import matplotlib.pyplot as plt
 
 import torch
 import numpy as np
+import pytorch_ssim
 import torch.nn as nn
 from PIL import Image
 from torchinfo import summary
+from ignite.metrics import PSNR, SSIM
 from torchvision import transforms
 from torch.optim import AdamW, lr_scheduler
 import torchvision.transforms.functional as TF
@@ -209,6 +211,16 @@ def plot_pictures(dataset, idx='random'):
         pic_lr, pic_hr = dataset.__getitem__(idx)
         if dataset.verbose: print(f'Total time: {time.time() - start:0.2f}\n')
 
+        psnr = PSNR(data_range=1.0)
+        psnr.update((pic_lr.unsqueeze(0), pic_hr.unsqueeze(0)))
+        psnr_acc = psnr.compute()
+        psnr.reset()
+
+        ssim = SSIM(data_range=1.0)
+        ssim.update((pic_lr.unsqueeze(0), pic_hr.unsqueeze(0)))
+        ssim_acc = ssim.compute()
+        ssim.reset()
+
         shape_lr = pic_lr.shape
         shape_hr = pic_hr.shape
         pic_lr = np.clip(pic_lr.permute(1,2,0).numpy(), 0, 1)
@@ -218,9 +230,13 @@ def plot_pictures(dataset, idx='random'):
 
         fig, axs = plt.subplots(1,2, figsize=(15,15))
         axs[0].imshow(pic_lr)
-        axs[0].set_title(f'Low Resolution Image\nSet: {dataset.mode}\nNormalized: {dataset.normalize}\n(shape: {shape_lr})\n{file_lr}')
+        title =  f'Low Resolution Image\nSet: {dataset.mode}\nNormalized: {dataset.normalize}\n'
+        title += f'(shape: {shape_lr})\nPSNR: {psnr_acc:0.2f}\nSSIM: {ssim_acc:0.2f}\n{file_lr}'
+        axs[0].set_title(title)
         axs[1].imshow(pic_hr)
-        axs[1].set_title(f'High Resolution Image\nSet: {dataset.mode}\nNormalized: {dataset.normalize}\n(shape: {shape_hr})\n{file_hr}')
+        title =  f'High Resolution Image\nSet: {dataset.mode}\nNormalized: {dataset.normalize}\n'
+        title += f'(shape: {shape_hr})\nPSNR: {psnr_acc:0.2f}\nSSIM: {ssim_acc:0.2f}\n{file_hr}'
+        axs[1].set_title(title)
         plt.show()
 
     else:
@@ -303,14 +319,14 @@ def create_dataloaders(mc):
 
     val_loader = DataLoader(val_dataset,
                             shuffle=False,
-                            batch_size=32,
+                            batch_size=mc['batch_size'],
                             num_workers=NUM_WORKERS,
                             pin_memory=torch.cuda.is_available(),
                             drop_last=True)
 
     test_loader = DataLoader(test_dataset,
                              shuffle=False,
-                             batch_size=32,
+                             batch_size=mc['batch_size'],
                              num_workers=NUM_WORKERS,
                              pin_memory=torch.cuda.is_available(),
                              drop_last=False)
