@@ -560,7 +560,7 @@ class autoencoder(object):
 
                 time_eval = time.time() - start_eval
 
-                display_str = f'epoch: {epoch} (step: {step}) * '
+                display_str = f'\nepoch: {epoch} (step: {step}) * '
                 display_str += f'training time: {time_epoch:0.2f} '
                 display_str += f'evaluation time: {time_eval:0.2f} * '
                 display_str += f'train_loss: {train_loss:.4f} '
