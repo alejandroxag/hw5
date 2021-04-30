@@ -13,6 +13,7 @@ gc.get_count()
 import os
 import glob
 import time
+import random
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 
@@ -481,6 +482,10 @@ class autoencoder(object):
 
         self.time_stamp = time.time()
 
+        torch.manual_seed(params['random_seed'])
+        random.seed(params['random_seed'])
+        np.random.seed(params['random_seed'])
+
         #------------------------------------- Optimization --------------------------------------#
         if params['criterion'] == 'ssim':
             cirterion = pytorch_ssim.SSIM()
@@ -732,6 +737,8 @@ def fit_and_log(mc, verbose, trials=None):
     model.fit(train_loader=train_loader,
               val_loader=val_loader)
 
+    print(f'Model fit time: {time.time() - start_time}')
+
     results = {#----------------- Hyperopt -----------------#
                'loss': model.val_loss,
                'status': STATUS_OK,
@@ -782,9 +789,11 @@ def main(args, max_evals):
     space = {'experiment_id': hp.choice(label='experiment_id', options=[args.experiment_id]),
              #------------------------------------- Architecture -------------------------------------#
 #              'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256]]),
-             'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256]]),
-             'final_size': hp.choice(label='final_size', options=[2040]),
-             'normalize': hp.choice(label='normalize', options=[True]),
+             'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256],
+                                                                  [8, 16, 32, 64, 128],
+                                                                  [8, 16, 32, 64]]),
+             'final_size': hp.choice(label='final_size', options=[205]),
+             'normalize': hp.choice(label='normalize', options=[True, False]),
              'data_augmentation': hp.choice(label='data_augmentation', options=[['crop', 'rotate', 'flip']]),
              'interpolation': hp.choice(label='interpolation', options=[TF.InterpolationMode.BILINEAR]),
              'in_memory': hp.choice(label='in_memory', options=[False]),
@@ -801,7 +810,7 @@ def main(args, max_evals):
              #--------------------------------------   Others   --------------------------------------#
              'path': hp.choice(label='path', options=[model_path]),
              'trials_path': hp.choice(label='trials_path', options=[trials_path]),
-             'random_seed': hp.choice(label='random_seed', options=[[2, 3, 5, 7, 11]])}
+             'random_seed': hp.choice(label='random_seed', options=[7, 11])}
 
 
     trials = Trials()
