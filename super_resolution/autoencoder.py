@@ -269,7 +269,8 @@ def plot_pictures(dataset, idx='random'):
         shape_lr = pic_lr.shape
         file_lr = dataset.file_names_lr[idx]
 
-        pic_lr_unnormalized = pic_lr * pic_lr_norm_params['stds'] + pic_lr_norm_params['means']
+        pic_lr_unnormalized = pic_lr * pic_lr_norm_params['stds'].unsqueeze(1).unsqueeze(2) + \
+                              pic_lr_norm_params['means'].unsqueeze(1).unsqueeze(1)
         shape_lr_unnormalized = pic_lr_unnormalized.shape
 
         resize_pic = transforms.Resize(size=[pic_lr_size['heights'], pic_lr_size['widths']],
@@ -542,6 +543,7 @@ class autoencoder(object):
 
                 del x_lr
                 del target_hr
+                del outputs
                 torch.cuda.empty_cache()
 
                 scheduler.step()
@@ -656,22 +658,20 @@ class autoencoder(object):
 
                 outputs = self.model(x_lr.float())
 
-                print(outputs.shape)
-                print(x_lr_norm_params['stds'].unsqueeze(1).shape)
-                print(x_lr_norm_params['means'].unsqueeze(1).shape)
-                outputs = outputs * x_lr_norm_params['stds'] + x_lr_norm_params['means']
+                outputs = x_lr * x_lr_norm_params['stds'].unsqueeze(2).unsqueeze(3) + \
+                          x_lr_norm_params['means'].unsqueeze(2).unsqueeze(3)
 
-                for i, pic in enumerate(outputs):
-
-                    outputs_hr.append(TF.resize(pic,
-                                                size=[x_lr_size['heights'][i],
-                                                      x_lr_size['widths'][i]],
-                                                interpolation=TF.InterpolationMode.BICUBIC))
+                outputs_hr += [TF.resize(outputs[i],
+                                         size=[x_lr_size['heights'][i].item(),
+                                               x_lr_size['widths'][i].item()],
+                                         interpolation=TF.InterpolationMode.BICUBIC) \
+                               for i in range(len(outputs))]
 
                 # Clean memory
                 del x_lr
                 del x_lr_size
                 del x_lr_norm_params
+                del outputs
                 torch.cuda.empty_cache()
 
         return outputs_hr
@@ -748,6 +748,7 @@ from functools import partial
 import argparse
 import pickle
 import pandas as pd
+from hyperopt import STATUS_OK
 
 # Cell
 def parse_args():
@@ -771,10 +772,10 @@ def main(args, max_evals):
 
     space = {'experiment_id': hp.choice(label='experiment_id', options=[args.experiment_id]),
              #------------------------------------- Architecture -------------------------------------#
-#              'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256]]),
-             'h_channels': hp.choice(label='h_channels', options=[[8]]),
-             'final_size': hp.choice(label='final_size', options=[205]),
-             'normalize': hp.choice(label='normalize', options=[True]),
+             'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256]]),
+#              'h_channels': hp.choice(label='h_channels', options=[[8]]),
+             'final_size': hp.choice(label='final_size', options=[2040]),
+             'normalize': hp.choice(label='normalize', options=[True, False]),
              'data_augmentation': hp.choice(label='data_augmentation', options=[['crop', 'rotate', 'flip']]),
              'interpolation': hp.choice(label='interpolation', options=[TF.InterpolationMode.BILINEAR]),
              'in_memory': hp.choice(label='in_memory', options=[False]),
