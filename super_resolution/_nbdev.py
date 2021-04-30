@@ -4,7 +4,11 @@ __all__ = ["index", "modules", "custom_doc_links", "git_url"]
 
 index = {"PicturesDataset": "autoencoder.ipynb",
          "plot_pictures": "autoencoder.ipynb",
-         "create_dataloaders": "autoencoder.ipynb"}
+         "create_dataloaders": "autoencoder.ipynb",
+         "autoencoder": "autoencoder.ipynb",
+         "fit_and_log": "autoencoder.ipynb",
+         "parse_args": "autoencoder.ipynb",
+         "main": "autoencoder.ipynb"}
 
 modules = ["autoencoder.py"]
 
