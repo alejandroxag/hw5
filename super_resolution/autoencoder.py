@@ -418,23 +418,27 @@ class _autoencoder(nn.Module):
 
         # Encoding (Convolutional Blocks - Downsampling)
         output_shapes = []
+        res_x = []
 
         for layer in self.encoder_layers:
             if isinstance(layer, torch.nn.modules.pooling.MaxPool2d):
                 output_shapes.append(x.shape)
+
             x = layer(x)
+
+            if isinstance(layer, torch.nn.modules.Conv2d): # skip connections
+                res_x.append(x)
 
         output_shapes = output_shapes[::-1]
+        res_x = res_x[::-1]
 
         # Decoding (Transpose Convolutional Blocks - Upsampling)
-        for i, layer in enumerate(self.decoder_layers[:-3]):
-            if i % 3 == 0: # if layer is ConvTranspose2D, then call it preserving output size from encoder
-                x = layer(x, output_size=output_shapes[i//3])
+        for i, layer in enumerate(self.decoder_layers):
+            if isinstance(layer, torch.nn.modules.conv.ConvTranspose2d):
+                x = layer(x, output_size=output_shapes[i//3]) # if layer is ConvTranspose2D, then call it preserving output size from encoder
+                x += res_x[i//3] # skip connections
             else:
                 x = layer(x)
-
-        for layer in self.decoder_layers[-3:]:
-            x = layer(x)
 
         return x
 
@@ -474,6 +478,8 @@ class autoencoder(object):
     def fit(self, train_loader, val_loader):
 
         params = self.params
+
+        self.time_stamp = time.time()
 
         #------------------------------------- Optimization --------------------------------------#
         if params['criterion'] == 'ssim':
@@ -580,9 +586,11 @@ class autoencoder(object):
                 trajectories['val_ssim']   += [val_ssim]
 
                 if val_ssim > self.best_ssim:
-                    print(f'Saving to {params["path"]}')
+
+                    path = f"./checkpoint/{args.experiment_id}_{self.time_stamp}_ckpt.pth"
+                    print(f'Saving to {path}')
                     self.best_ssim = val_ssim
-                    self.save_weights(path=params['path'],
+                    self.save_weights(path=path,
                                       epoch=epoch,
                                       train_loss=train_loss,
                                       val_loss=val_loss,
@@ -730,12 +738,12 @@ def fit_and_log(mc, verbose, trials=None):
                'mc': mc,
                'path': mc['path'],
                #------------------- Logs -------------------#
-               'train_loss': train_loss,
-               'val_loss': val_loss,
-               'train_psnr': train_psnr,
-               'val_psnr': val_psnr,
-               'train_ssim': train_ssim,
-               'val_ssim': val_ssim,
+               'train_loss': model.train_loss,
+               'val_loss': model.val_loss,
+               'train_psnr': model.train_psnr,
+               'val_psnr': model.val_psnr,
+               'train_ssim': model.train_ssim,
+               'val_ssim': model.val_ssim,
                'run_time': time.time()-start_time,
                'trajectories': model.trajectories}
 
@@ -756,6 +764,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description=desc)
     parser.add_argument('--n_epochs', required=True, type=int, help='number of epochs')
     parser.add_argument('--batch_size', required=True, type=int, help='Batch size')
+    parser.add_argument('--n_eval_steps', required=True, type=int, help='Number of display and eval steps')
     parser.add_argument('--hyperopt_max_evals', required=True, type=int, help='Hyperopt evaluations')
     parser.add_argument('--experiment_id', required=True, type=str, help='string to identify experiment')
     return parser.parse_args()
@@ -768,21 +777,21 @@ def main(args, max_evals):
 
     iterations = (800 // args.batch_size) * args.n_epochs
 
-    display_step = iterations // 10
+    display_step = iterations // args.n_eval_steps
 
     space = {'experiment_id': hp.choice(label='experiment_id', options=[args.experiment_id]),
              #------------------------------------- Architecture -------------------------------------#
+#              'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256]]),
              'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256]]),
-#              'h_channels': hp.choice(label='h_channels', options=[[8]]),
              'final_size': hp.choice(label='final_size', options=[2040]),
-             'normalize': hp.choice(label='normalize', options=[True, False]),
+             'normalize': hp.choice(label='normalize', options=[True]),
              'data_augmentation': hp.choice(label='data_augmentation', options=[['crop', 'rotate', 'flip']]),
              'interpolation': hp.choice(label='interpolation', options=[TF.InterpolationMode.BILINEAR]),
              'in_memory': hp.choice(label='in_memory', options=[False]),
              'criterion': hp.choice(label='criterion', options=['mse']),
              #------------------------------ Optimization Regularization -----------------------------#
              'batch_size': hp.choice(label='batch_size', options=[args.batch_size]),
-             'initial_lr': hp.loguniform(label='initial_lr', low=np.log(5e-3), high=np.log(5e-2)),
+             'initial_lr': hp.loguniform(label='initial_lr', low=np.log(5e-3), high=np.log(1e-2)),
              'weight_decay': scope.float(hp.choice(label='weight_decay', options=[1e-6])),
              'adjust_lr_step': hp.choice(label='adjust_lr_step', options=[iterations//3]),
              'lr_decay': scope.float(hp.choice(label='lr_decay', options=[0.1])),
@@ -814,4 +823,4 @@ if __name__ == "__main__":
 #                       'experiment_id': 'debugging'})
     main(args, max_evals=args.hyperopt_max_evals)
 
-# PYTHONPATH=. python super_resolution/autoencoder.py --n_epochs 100 --batch_size 8  --hyperopt_max_evals 3 --experiment_id "debugging"
+# PYTHONPATH=. python super_resolution/autoencoder.py --n_epochs 100 --batch_size 8  --n_eval_steps 5 --hyperopt_max_evals 3 --experiment_id "debugging"
