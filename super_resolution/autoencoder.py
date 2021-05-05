@@ -789,18 +789,17 @@ def main(args, max_evals):
     space = {'experiment_id': hp.choice(label='experiment_id', options=[args.experiment_id]),
              #------------------------------------- Architecture -------------------------------------#
 #              'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256]]),
-             'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64, 128, 256],
-                                                                  [8, 16, 32, 64, 128],
-                                                                  [8, 16, 32, 64]]),
-             'final_size': hp.choice(label='final_size', options=[205]),
-             'normalize': hp.choice(label='normalize', options=[True, False]),
+             'h_channels': hp.choice(label='h_channels', options=[[8, 16, 32, 64]]),
+             'final_size': hp.choice(label='final_size', options=[2040]),
+             'normalize': hp.choice(label='normalize', options=[False]),
              'data_augmentation': hp.choice(label='data_augmentation', options=[['crop', 'rotate', 'flip']]),
              'interpolation': hp.choice(label='interpolation', options=[TF.InterpolationMode.BILINEAR]),
              'in_memory': hp.choice(label='in_memory', options=[False]),
              'criterion': hp.choice(label='criterion', options=['mse']),
              #------------------------------ Optimization Regularization -----------------------------#
              'batch_size': hp.choice(label='batch_size', options=[args.batch_size]),
-             'initial_lr': hp.loguniform(label='initial_lr', low=np.log(5e-3), high=np.log(1e-2)),
+#              'initial_lr': hp.loguniform(label='initial_lr', low=np.log(5e-3), high=np.log(1e-2)),
+             'initial_lr': scope.float(hp.choice(label='initial_lr', options=[0.009364])),
              'weight_decay': scope.float(hp.choice(label='weight_decay', options=[1e-6])),
              'adjust_lr_step': hp.choice(label='adjust_lr_step', options=[iterations//3]),
              'lr_decay': scope.float(hp.choice(label='lr_decay', options=[0.1])),
@@ -810,7 +809,7 @@ def main(args, max_evals):
              #--------------------------------------   Others   --------------------------------------#
              'path': hp.choice(label='path', options=[model_path]),
              'trials_path': hp.choice(label='trials_path', options=[trials_path]),
-             'random_seed': hp.choice(label='random_seed', options=[7, 11])}
+             'random_seed': hp.choice(label='random_seed', options=[7])}
 
 
     trials = Trials()
