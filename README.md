@@ -6,7 +6,7 @@ Authors:
 - Yu Zhang
 - Alejandro Alvarez
 
-The aim of this project is to implement x4 upscaling on low-resolution images from the dataset DIV2K using three different models:
+The aim of this project is to implement x4 upscaling on low-resolution images from the dataset [DIV2K](https://data.vision.ee.ethz.ch/cvl/DIV2K/) using three different models:
 
 - Convolutional Autoencoder
 - Super-Resolution Generative Adversarial Network (SRGAN)
