@@ -8,7 +8,8 @@ index = {"PicturesDataset": "autoencoder.ipynb",
          "autoencoder": "autoencoder.ipynb",
          "fit_and_log": "autoencoder.ipynb",
          "parse_args": "autoencoder.ipynb",
-         "main": "autoencoder.ipynb"}
+         "main": "autoencoder.ipynb",
+         "create_test_loaders": "autoencoder.ipynb"}
 
 modules = ["autoencoder.py"]
 
